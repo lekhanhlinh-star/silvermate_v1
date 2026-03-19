@@ -270,7 +270,7 @@ export const chatbot = {
     const formData = new FormData();
     formData.append("text", text);
 
-    const res = await fetch(`${BASE_URL}/chatbot/tts`, {
+    const res = await fetch(`https://audiobook-backend-latest.onrender.com/api/v1/chat/tts`, {
       method: "POST",
       headers: {
         "ngrok-skip-browser-warning": "true",
