@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SilverMate - Connect Family</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="flex h-screen overflow-hidden">
+<!-- Side Navigation Bar -->
+<aside class="w-64 bg-slate-900 dark:bg-black flex flex-col justify-between p-6">
+<div class="flex flex-col gap-8">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-2xl">blind</span>
+</div>
+<h1 class="text-white text-xl font-bold tracking-tight">SilverMate</h1>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="font-medium">Chats</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl bg-primary text-white transition-colors" href="#">
+<span class="material-symbols-outlined">share_reviews</span>
+<span class="font-medium">Connect</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="font-medium">Profile</span>
+</a>
+</nav>
+</div>
+<div class="p-4 rounded-xl bg-slate-800/50">
+<div class="flex items-center gap-3">
+<img class="h-10 w-10 rounded-full object-cover" data-alt="Senior woman smiling profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmqRtyO0UBd5BFtCY6Fj0RAcboS5hbSSZTFMjiARL2SwfvD5VitV2uBouNw8KHQsSU_miS3HxDmZo2K4rx-xD182JWn5KwNCqMXvgA87Nj66X_PmLT500uodN1Bdncvm-bpt6tr-qLDbDO9c8vZmKsd00KV0LnSkQmdqecPi7Az5KYR--2M9eWccfPLNoczWUb15q2-1AlPd-3_2HCSJEqOOvrba3FVT3voV8mOodlEeDrixiA6pHexlT9qJBsAe1jN2q3pgvbR_g"/>
+<div>
+<p class="text-white text-sm font-semibold">Martha S.</p>
+<p class="text-slate-400 text-xs">Standard Member</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto p-8 lg:p-12">
+<header class="mb-12">
+<h2 class="text-4xl font-black text-slate-900 dark:text-white">Connect Family</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-2 text-lg">Bring your loved ones closer with a single code.</p>
+</header>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+<!-- Left Card: Generate Code (Vibrant Purple) -->
+<div class="relative group bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl shadow-purple-500/10 overflow-hidden flex flex-col items-center justify-center p-12 border-4 border-transparent hover:border-purple-500/30 transition-all duration-300 min-h-[500px]">
+<!-- Purple Decorative Elements -->
+<div class="absolute -top-24 -left-24 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl"></div>
+<div class="absolute -bottom-24 -right-24 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl"></div>
+<div class="z-10 flex flex-col items-center gap-8 text-center">
+<div class="w-48 h-48 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center text-purple-600 mb-4">
+<span class="material-symbols-outlined text-8xl" style="font-variation-settings: 'wght' 200">ios_share</span>
+</div>
+<div class="space-y-2">
+<h3 class="text-2xl font-bold text-slate-900 dark:text-white uppercase tracking-widest">Host</h3>
+<p class="text-slate-500 dark:text-slate-400 max-w-xs mx-auto">Create a secure link for your family circle</p>
+</div>
+<button class="w-32 h-32 rounded-full bg-purple-600 hover:bg-purple-700 shadow-2xl shadow-purple-600/40 flex items-center justify-center transition-transform hover:scale-110 active:scale-95 text-white">
+<span class="material-symbols-outlined text-6xl">add</span>
+</button>
+</div>
+</div>
+<!-- Right Card: Enter PIN (Vibrant Orange) -->
+<div class="relative group bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl shadow-orange-500/10 overflow-hidden flex flex-col items-center justify-center p-12 border-4 border-transparent hover:border-primary/30 transition-all duration-300 min-h-[500px]">
+<!-- Orange Decorative Elements -->
+<div class="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
+<div class="absolute -bottom-24 -left-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
+<div class="z-10 flex flex-col items-center gap-8 text-center w-full">
+<div class="w-48 h-48 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center text-primary mb-4">
+<span class="material-symbols-outlined text-8xl" style="font-variation-settings: 'wght' 200">group_add</span>
+</div>
+<div class="space-y-2 mb-4">
+<h3 class="text-2xl font-bold text-slate-900 dark:text-white uppercase tracking-widest">Join</h3>
+<p class="text-slate-500 dark:text-slate-400">Enter the 6-digit code shared by your family</p>
+</div>
+<!-- 6-digit PIN Input Grid -->
+<div class="flex gap-3 justify-center">
+<div class="w-12 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center text-2xl font-bold text-primary"></div>
+<div class="w-12 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center text-2xl font-bold text-primary"></div>
+<div class="w-12 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center text-2xl font-bold text-primary"></div>
+<div class="w-12 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center text-2xl font-bold text-primary"></div>
+<div class="w-12 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center text-2xl font-bold text-primary"></div>
+<div class="w-12 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center text-2xl font-bold text-primary"></div>
+</div>
+<button class="w-32 h-32 rounded-full bg-primary hover:bg-orange-600 shadow-2xl shadow-primary/40 flex items-center justify-center transition-transform hover:scale-110 active:scale-95 text-white mt-4">
+<span class="material-symbols-outlined text-6xl">check</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Desktop Footer Info -->
+<footer class="mt-16 text-center text-slate-400 dark:text-slate-500 text-sm">
+<div class="flex justify-center items-center gap-8">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-base">verified_user</span>
+<span>Secure End-to-End Encryption</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-base">family_restroom</span>
+<span>Supports up to 10 members</span>
+</div>
+</div>
+</footer>
+</main>
+</div>
+</body></html>
