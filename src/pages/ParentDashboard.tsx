@@ -29,7 +29,6 @@ export default function ParentDashboard() {
   const [currentTranscript, setCurrentTranscript] = useState<string>("");
   const [currentResponse, setCurrentResponse] = useState<string>("");
   // Configuration - edit these values directly in code:
-  const [useBrowserTTS] = useState(true);  // true = Browser TTS, false = API TTS
   const [audioOnlyMode] = useState(true); // true = Audio only, false = Text + Audio
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -44,22 +43,7 @@ export default function ParentDashboard() {
     loadSessions();
   }, []);
 
-  // Load browser TTS voices
-  useEffect(() => {
-    if (window.speechSynthesis) {
-      // Voices are loaded asynchronously
-      const loadVoices = () => {
-        const voices = window.speechSynthesis.getVoices();
-        console.log("Available TTS voices:", voices.map(v => `${v.name} (${v.lang})`));
-      };
-      
-      if (window.speechSynthesis.getVoices().length > 0) {
-        loadVoices();
-      } else {
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-      }
-    }
-  }, []);
+  // ...existing code...
 
   const loadSessions = async () => {
     try {
@@ -134,41 +118,7 @@ export default function ParentDashboard() {
     setIsSpeaking(false);
   };
 
-  // Browser TTS function
-  const speakWithBrowserTTS = (text: string) => {
-    if (!window.speechSynthesis) {
-      console.error("Browser TTS not supported");
-      return false;
-    }
-
-    window.speechSynthesis.cancel(); // Stop any ongoing speech
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    
-    // Configure voice settings
-    const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(voice => 
-      voice.lang.startsWith('en-') && voice.name.toLowerCase().includes('female')
-    ) || voices.find(voice => voice.lang.startsWith('en-'));
-    
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
-    }
-    
-    utterance.rate = 0.9;
-    utterance.pitch = 1.1;
-    utterance.volume = 0.8;
-    
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => {
-      setIsSpeaking(false);
-      console.error("Browser TTS error");
-    };
-    
-    window.speechSynthesis.speak(utterance);
-    return true;
-  };
+  // ...existing code...
 
   // API TTS function  
   const speakWithAPITTS = async (text: string) => {
@@ -299,19 +249,9 @@ export default function ParentDashboard() {
         setMessages((prev) => [...prev, { role: "assistant", content: responseText }]);
       }
 
-      // 3. TTS - Use Browser TTS by default for speed
+      // 3. TTS - Use only API TTS
       setIsProcessing(false);
-      
-      if (useBrowserTTS) {
-        const browserTTSSuccess = speakWithBrowserTTS(responseText);
-        if (!browserTTSSuccess) {
-          // Fallback to API TTS if browser TTS fails
-          await speakWithAPITTS(responseText);
-        }
-      } else {
-        // Use API TTS for higher quality
-        await speakWithAPITTS(responseText);
-      }
+      await speakWithAPITTS(responseText);
 
     } catch (error) {
       console.error("Voice interaction error:", error);
