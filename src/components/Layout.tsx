@@ -24,6 +24,7 @@ export default function Layout() {
 
   const navigationItems = user?.user_type === "PARENT" ? [
     { name: "My Chats", href: "/dashboard", icon: MessageCircle },
+    { name: "Family", href: "/family", icon: Users },
     { name: "Connect", href: "/connect", icon: Link2 },
     { name: "Profile", href: "/profile", icon: User },
   ] : [

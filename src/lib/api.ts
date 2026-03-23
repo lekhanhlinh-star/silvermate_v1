@@ -251,7 +251,7 @@ export const chatbot = {
     const res = await fetch(`https://audiobook-backend-latest.onrender.com/api/v1/chat/transcribe`, {
       method: "POST",
       headers: {
-     'accept': 'application/json' ,
+        'accept': 'application/json',
 
       },
       body: formData,
@@ -309,11 +309,11 @@ export const audio = {
   transcribeAndUpload: async (sessionId: string, audioFile: Blob | File, language: string = "en") => {
     const token = getToken();
     const formData = new FormData();
-    
+
     // Determine the correct mime type
     let fileName = "audio.m4a";
     let mimeType = "audio/x-m4a";
-    
+
     if (audioFile instanceof File) {
       fileName = audioFile.name;
       mimeType = audioFile.type;
@@ -324,7 +324,7 @@ export const audio = {
       else if (mimeType.includes("mp4")) fileName = "audio.mp4";
       else if (mimeType.includes("ogg")) fileName = "audio.ogg";
     }
-    
+
     formData.append("file", audioFile, fileName);
     formData.append("language", language);
 
@@ -358,7 +358,7 @@ export const audio = {
    */
   downloadAudio: async (messageId: string) => {
     const token = getToken();
-    
+
     const res = await fetch(`${BASE_URL}/audio/download/${messageId}`, {
       method: "GET",
       headers: {
@@ -388,7 +388,7 @@ export const audio = {
     if (params?.session_id) queryParams.append("session_id", params.session_id);
     if (params?.skip !== undefined) queryParams.append("skip", params.skip.toString());
     if (params?.limit !== undefined) queryParams.append("limit", params.limit.toString());
-    
+
     const query = queryParams.toString();
     return request<ChatMessage[]>(`/audio/messages/with-audio${query ? `?${query}` : ""}`);
   },
@@ -422,4 +422,50 @@ export const monitoring = {
 
   summarize: (parentId: string, sessionId: string) =>
     request<SummaryResponse>(`/monitoring/${parentId}/sessions/${sessionId}/summarize`, { method: "POST" }),
+};
+
+// Family Messaging
+export interface FamilyMessage {
+  id: string;
+  sender_id: string | null;
+  receiver_id: string;
+  content: string;
+  created_at: string;
+  is_read: boolean;
+  is_system: boolean;
+  audio_path?: string | null;
+  audio_duration?: number | null;
+  audio_mime_type?: string | null;
+  audio_url?: string | null;
+}
+
+export const family = {
+  sendMessage: (receiverId: string, content: string) =>
+    request<FamilyMessage>(`/family/messages/${receiverId}`, {
+      method: "POST",
+      body: JSON.stringify({ content }),
+    }),
+
+  getMessages: (skip: number = 0, limit: number = 50) =>
+    request<FamilyMessage[]>(`/family/messages?skip=${skip}&limit=${limit}`),
+
+  downloadAudio: async (url: string) => {
+    const token = getToken();
+    const fullUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`;
+
+    const res = await fetch(fullUrl, {
+      method: "GET",
+      headers: {
+        "ngrok-skip-browser-warning": "true",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "Unknown error");
+      throw new Error(`API Error ${res.status}: ${text}`);
+    }
+
+    return res.blob();
+  }
 };

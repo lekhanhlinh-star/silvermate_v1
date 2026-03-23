@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, Users, Link2, Loader2, MessageCircle, ChevronRight, Headphones, Calendar } from "lucide-react";
 import { connections, audio, FamilyMember, ChatSession } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
 export default function ChildDashboard() {
+  const { user } = useAuth();
   const [family, setFamily] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [voiceSessions, setVoiceSessions] = useState<ChatSession[]>([]);
@@ -56,10 +58,10 @@ export default function ChildDashboard() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-display text-3xl font-bold text-foreground">Your Family</h1>
-          <p className="text-muted-foreground font-body mt-1">Check in on your loved ones</p>
+          <p className="text-muted-foreground font-body mt-1">Check in and message your loved ones</p>
         </div>
         <div className="flex gap-2">
-          {family.length > 0 && (
+          {family.length > 0 && user?.user_type === "CHILD" && (
             <Button 
               onClick={loadVoiceSessions} 
               disabled={loadingVoice}
@@ -162,11 +164,11 @@ export default function ChildDashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
             >
-              <Link to={`/parent/${member.id}/sessions`}>
-                <Card className="hover:shadow-warm transition-shadow cursor-pointer border-border">
-                  <CardContent className="flex items-center justify-between p-6">
+              <Card className="hover:shadow-warm transition-shadow border-border">
+                <CardContent className="flex items-center justify-between p-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-full bg-gradient-warm flex items-center justify-center">
+                      <div className="w-14 h-14 rounded-full bg-gradient-warm flex flex-shrink-0 items-center justify-center">
                         <Heart className="h-7 w-7 text-primary fill-primary/30" />
                       </div>
                       <div>
@@ -174,13 +176,23 @@ export default function ChildDashboard() {
                         <p className="text-muted-foreground font-body">{member.email}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <MessageCircle className="h-5 w-5" />
-                      <ChevronRight className="h-5 w-5" />
+                    <div className="flex items-center gap-2 mt-4 sm:mt-0 w-full sm:w-auto">
+                      <Link to={`/family/chat/${member.id}`} className="w-full sm:w-auto">
+                        <Button className="w-full sm:w-auto gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-body">
+                          <MessageCircle className="h-4 w-4" /> Message
+                        </Button>
+                      </Link>
+                      {user?.user_type === "CHILD" && (
+                        <Link to={`/parent/${member.id}/sessions`} className="w-full sm:w-auto">
+                          <Button variant="outline" className="w-full sm:w-auto gap-2 font-body">
+                            <Headphones className="h-4 w-4" /> BOT Sessions
+                          </Button>
+                        </Link>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              </Link>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
           ))}
         </div>

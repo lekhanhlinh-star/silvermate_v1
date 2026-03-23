@@ -17,6 +17,7 @@ import ConnectionSetup from "@/pages/ConnectionSetup";
 import ParentSessions from "@/pages/ParentSessions";
 import SessionMessages from "@/pages/SessionMessages";
 import AudioHistory from "@/pages/AudioHistory";
+import FamilyChat from "@/pages/FamilyChat";
 import Profile from "@/pages/Profile";
 import NotFound from "@/pages/NotFound";
 
@@ -57,7 +58,8 @@ const App = () => (
 
             <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               <Route path="/dashboard" element={<ProtectedRoute allowedType="PARENT"><ParentDashboard /></ProtectedRoute>} />
-              <Route path="/family" element={<ProtectedRoute allowedType="CHILD"><ChildDashboard /></ProtectedRoute>} />
+              <Route path="/family" element={<ProtectedRoute><ChildDashboard /></ProtectedRoute>} />
+              <Route path="/family/chat/:memberId" element={<ProtectedRoute><FamilyChat /></ProtectedRoute>} />
               <Route path="/connect" element={<ProtectedRoute><ConnectionSetup /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/parent/:parentId/sessions" element={<ProtectedRoute allowedType="CHILD"><ParentSessions /></ProtectedRoute>} />
