@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Send, Volume2, Heart, Loader2 } from "lucide-react";
+import { ArrowLeft, Send, Volume2, Heart, Loader2, Bot, Activity } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function FamilyChat() {
@@ -21,29 +21,39 @@ export default function FamilyChat() {
   const [sending, setSending] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+  const [errorCount, setErrorCount] = useState(0);
+  const [isOffline, setIsOffline] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     loadChatData();
-    // Optional: Setup interval for polling new messages
+    // Setup interval for polling new messages
     const interval = setInterval(() => {
-      fetchMessages(false);
-    }, 5000); // refresh every 5s
+      // Don't poll if we've had too many errors recently (prevents console spam when offline)
+      if (errorCount < 3) {
+         fetchMessages(false);
+      } else {
+         setIsOffline(true);
+      }
+    }, 5000); 
     return () => clearInterval(interval);
-  }, [memberId]);
+  }, [memberId, errorCount]);
 
   useEffect(() => {
     // Scroll to bottom when new messages arrive
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       scrollRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
+    return () => clearTimeout(timer);
   }, [messages]);
 
   const loadChatData = async () => {
     try {
       setLoading(true);
+      setErrorCount(0);
+      setIsOffline(false);
       // Fetch member info
       const familyMembers = await connections.getFamily();
       const currentMember = familyMembers.find(m => m.id === memberId);
@@ -51,7 +61,8 @@ export default function FamilyChat() {
 
       await fetchMessages(true);
     } catch (err: unknown) {
-      toast({ title: "Failed to load chat", description: err instanceof Error ? err.message : "Unknown error", variant: "destructive" });
+      setErrorCount(prev => prev + 1);
+      toast({ title: "Failed to load chat", description: err instanceof Error ? err.message : "Connection error", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -59,11 +70,12 @@ export default function FamilyChat() {
 
   const fetchMessages = async (showLoading = false) => {
     try {
-      // Fetch history (assuming returning all my messages)
+      // Fetch history 
       const allMessages = await family.getMessages(0, 50);
+      setErrorCount(0); // Reset on success
+      setIsOffline(false);
       
-      // Filter for this specific chat: 
-      // sender or receiver is the memberId, or it's a system message sent to me
+      // Filter for this specific chat
       const filtered = allMessages.filter(m => 
         m.sender_id === memberId || 
         m.receiver_id === memberId ||
@@ -74,6 +86,7 @@ export default function FamilyChat() {
       filtered.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
       setMessages(filtered);
     } catch (error) {
+      setErrorCount(prev => prev + 1);
       console.error("Failed fetching messages in background", error);
     }
   };
@@ -146,9 +159,29 @@ export default function FamilyChat() {
             </div>
             <div>
               <h2 className="font-display font-bold text-lg">{member?.full_name || "Family Member"}</h2>
-              <p className="text-xs text-muted-foreground">{member?.email || "Offline"}</p>
+              <div className="flex items-center gap-2">
+                {isOffline ? (
+                  <span className="flex items-center gap-1.5 text-[10px] font-bold text-destructive uppercase tracking-widest animate-pulse">
+                    <Activity className="h-3 w-3" />
+                    Connection Lost
+                  </span>
+                ) : (
+                  <p className="text-xs text-muted-foreground">{member?.email || "Connected"}</p>
+                )}
+              </div>
             </div>
           </div>
+          {isOffline && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={loadChatData}
+              className="h-8 border-destructive/30 text-destructive hover:bg-destructive/5 gap-1.5"
+            >
+              <Activity className="h-3.5 w-3.5" />
+              Retry
+            </Button>
+          )}
         </div>
       </div>
 
@@ -162,39 +195,40 @@ export default function FamilyChat() {
             </div>
           ) : (
             <AnimatePresence initial={false}>
-              {messages.map((msg) => {
+              {messages.map((msg, idx) => {
                 const isSystem = msg.is_system;
-                const isMe = msg.sender_id === user?.id;
+                // Reliable logic: if the message receiver is the person we're chatting with, then WE sent it.
+                const isMe = msg.receiver_id === memberId && !isSystem;
                 
                 return (
                   <motion.div
                     key={msg.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`flex flex-col ${isSystem ? 'items-center' : isMe ? 'items-end' : 'items-start'}`}
+                    initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ 
+                       type: "spring", 
+                       stiffness: 260, 
+                       damping: 20,
+                       delay: Math.min(idx * 0.05, 0.5) 
+                    }}
+                    className={`flex flex-col w-full ${isSystem ? 'items-center px-4' : isMe ? 'items-end pr-2' : 'items-start pl-2'}`}
                   >
                     {isSystem ? (
-                      <div className="flex flex-col items-center max-w-[85%] sm:max-w-md my-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <img 
-                            src="/sys-avatar.png" 
-                            alt="System" 
-                            className="w-6 h-6 rounded-full bg-accent/20 object-cover" 
-                            onError={(e) => {
-                              // Fallback if image doesn't exist
-                              (e.target as HTMLImageElement).src = "https://ui-avatars.com/api/?name=SM&background=FF8A65&color=fff";
-                            }}
-                          />
-                          <span className="text-xs font-semibold text-accent font-display">SilverMate System</span>
+                      <div className="flex flex-col items-center max-w-[90%] sm:max-w-lg my-6 group">
+                        <div className="flex items-center gap-2 mb-3">
+                           <div className="h-8 w-8 rounded-full bg-accent/20 flex items-center justify-center border border-accent/20">
+                              <Bot className="h-4 w-4 text-accent" />
+                           </div>
+                           <span className="text-[11px] font-bold text-accent uppercase tracking-widest font-display">SilverMate Intelligence</span>
                         </div>
-                        <div className="relative group bg-accent/10 border border-accent/20 text-foreground px-5 py-3 rounded-2xl text-center shadow-sm">
-                          <p className="text-sm">{msg.content}</p>
+                        <div className="relative bg-accent/5 backdrop-blur-sm border border-accent/30 text-foreground px-6 py-4 rounded-3xl text-center shadow-sm hover:shadow-md transition-all">
+                          <p className="text-sm font-medium leading-relaxed italic text-foreground/90">{msg.content}</p>
                           {msg.audio_url && (
-                            <div className="mt-3 flex justify-center">
+                            <div className="mt-4 flex justify-center">
                               <Button
                                 size="sm"
-                                variant="outline"
-                                className="gap-2 text-accent border-accent/30 hover:bg-accent/10 rounded-full"
+                                variant="secondary"
+                                className="h-9 gap-2 px-6 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm transition-all active:scale-95"
                                 onClick={() => playAudio(msg.id, msg.audio_url!)}
                                 disabled={playingAudioId === msg.id}
                               >
@@ -203,44 +237,58 @@ export default function FamilyChat() {
                                 ) : (
                                   <Volume2 className="w-4 h-4" />
                                 )}
-                                Listen
+                                Listen to AI Summary
                               </Button>
                             </div>
                           )}
                         </div>
                       </div>
                     ) : (
-                      <div className={`flex flex-col max-w-[80%] ${isMe ? 'items-end' : 'items-start'}`}>
-                        <div 
-                          className={`relative px-5 py-3 rounded-2xl shadow-sm text-sm sm:text-base ${
-                            isMe 
-                              ? 'bg-primary text-primary-foreground rounded-br-sm' 
-                              : 'bg-white dark:bg-slate-800 text-foreground rounded-bl-sm border border-border'
-                          }`}
-                        >
-                          <p className="whitespace-pre-wrap">{msg.content}</p>
-                          
-                          {msg.audio_url && (
-                            <button 
-                              onClick={() => playAudio(msg.id, msg.audio_url!)}
-                              disabled={playingAudioId === msg.id}
-                              className={`absolute -right-12 bottom-0 p-2 rounded-full transition-colors ${
-                                playingAudioId === msg.id 
-                                  ? 'text-primary bg-primary/10' 
-                                  : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
-                              }`}
-                            >
-                              {playingAudioId === msg.id ? (
-                                <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                              ) : (
-                                <Volume2 className="w-5 h-5" />
-                              )}
-                            </button>
-                          )}
+                      <div className={`flex flex-col group max-w-[85%] sm:max-w-[75%] ${isMe ? 'items-end' : 'items-start'}`}>
+                        <div className="flex items-end gap-2">
+                           {!isMe && (
+                              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mb-1 border border-primary/5">
+                                 <Heart className="h-4 w-4 text-primary opacity-40" />
+                              </div>
+                           )}
+                           <div className="flex flex-col">
+                              <div 
+                                className={`relative px-5 py-3 rounded-2xl shadow-sm transition-all ${
+                                  isMe 
+                                    ? 'bg-primary text-primary-foreground rounded-br-none hover:shadow-primary/20' 
+                                    : 'bg-white dark:bg-slate-800 text-foreground rounded-bl-none border border-border/50 hover:shadow-md'
+                                }`}
+                              >
+                                <p className="text-sm sm:text-[15px] leading-relaxed whitespace-pre-wrap font-body font-medium">
+                                   {msg.content}
+                                </p>
+                                
+                                {msg.audio_url && (
+                                  <button 
+                                    onClick={() => playAudio(msg.id, msg.audio_url!)}
+                                    disabled={playingAudioId === msg.id}
+                                    className={`absolute ${isMe ? '-left-12' : '-right-12'} bottom-1 p-2.5 rounded-full transition-all hover:scale-110 active:scale-90 ${
+                                      playingAudioId === msg.id 
+                                        ? 'text-primary bg-primary/10' 
+                                        : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+                                    }`}
+                                  >
+                                    {playingAudioId === msg.id ? (
+                                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                                    ) : (
+                                      <Volume2 className="w-5 h-5" />
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                              <div className={`flex items-center gap-1 mt-1.5 px-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                 <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-tighter">
+                                   {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                 </span>
+                                 {isMe && <Heart className="h-2.5 w-2.5 text-primary/30" />}
+                              </div>
+                           </div>
                         </div>
-                        <span className="text-[10px] text-muted-foreground mt-1 mx-1">
-                          {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
                       </div>
                     )}
                   </motion.div>

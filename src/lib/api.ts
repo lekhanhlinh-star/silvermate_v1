@@ -1,4 +1,4 @@
-const BASE_URL = "https://silvermate-v1-0-0.onrender.com";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 function getToken(): string | null {
   return localStorage.getItem("silvermate_token");
@@ -92,6 +92,12 @@ export const auth = {
 
   googleCallback: (code: string, state?: string) =>
     request<LoginResponse>(`/auth/google/callback?code=${encodeURIComponent(code)}${state ? `&state=${state}` : ""}`),
+
+  lineAuthorize: () =>
+    request<GoogleAuthResponse>("/auth/line/authorize"),
+
+  lineCallback: (code: string, state?: string) =>
+    request<LoginResponse>(`/auth/line/callback?code=${encodeURIComponent(code)}${state ? `&state=${state}` : ""}`),
 
   forgotPassword: (email: string) =>
     request("/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) }),
@@ -468,4 +474,43 @@ export const family = {
 
     return res.blob();
   }
+};
+
+// Notifications
+export interface Notification {
+  id: string;
+  user_id: string;
+  title: string;
+  content: string;
+  notification_type: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export const notifications = {
+  getAll: (skip: number = 0, limit: number = 50, unreadOnly: boolean = false) =>
+    request<Notification[]>(`/notifications?skip=${skip}&limit=${limit}&unread_only=${unreadOnly}`),
+
+  getUnreadCount: () =>
+    request<{ unread_count: number }>("/notifications/unread-count"),
+
+  markAsRead: (id: string) =>
+    request<Notification>(`/notifications/${id}/read`, {
+      method: "POST",
+    }),
+
+  markAllAsRead: () =>
+    request<{ message: string }>("/notifications/read-all", {
+      method: "POST",
+    }),
+
+  delete: (id: string) =>
+    request<void>(`/notifications/${id}`, {
+      method: "DELETE",
+    }),
+
+  deleteAll: () =>
+    request<void>("/notifications", {
+      method: "DELETE",
+    }),
 };

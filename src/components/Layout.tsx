@@ -2,8 +2,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link, Outlet, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LogOut, Heart, Menu, X, User, Settings, MessageCircle, Users, Link2, Home, Headphones } from "lucide-react";
+import { LogOut, Heart, Menu, X, User, Settings, MessageCircle, Users, Link2, Home, Headphones, Bell } from "lucide-react";
 import { useState } from "react";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -26,10 +27,12 @@ export default function Layout() {
     { name: "My Chats", href: "/dashboard", icon: MessageCircle },
     { name: "Family", href: "/family", icon: Users },
     { name: "Connect", href: "/connect", icon: Link2 },
+    { name: "Notifications", href: "/notifications", icon: Bell },
     { name: "Profile", href: "/profile", icon: User },
   ] : [
     { name: "Family", href: "/family", icon: Users },
     { name: "Connect", href: "/connect", icon: Link2 },
+    { name: "Notifications", href: "/notifications", icon: Bell },
     { name: "Profile", href: "/profile", icon: User },
   ];
 
@@ -85,6 +88,9 @@ export default function Layout() {
                 <p className="font-medium text-foreground text-sm truncate">{user?.full_name}</p>
                 <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
               </div>
+              <div className="flex-shrink-0">
+                <NotificationBell />
+              </div>
             </div>
             <Button
               variant="ghost"
@@ -122,7 +128,9 @@ export default function Layout() {
               <Heart className="h-6 w-6 text-accent fill-accent" />
               <span className="font-display text-lg font-bold text-foreground">SilverMate</span>
             </Link>
-            <div className="w-10" /> {/* Spacer for alignment */}
+            <div className="w-10">
+              <NotificationBell />
+            </div>
           </div>
         </header>
 

@@ -56,6 +56,19 @@ export default function Login() {
     }
   };
 
+  const handleLineLogin = async () => {
+    try {
+      const res = await auth.lineAuthorize();
+      window.location.href = res.authorization_url;
+    } catch (err: any) {
+      toast({
+        title: "LINE Sign-In failed",
+        description: err.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-md">
@@ -92,10 +105,17 @@ export default function Login() {
               <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">or</span></div>
             </div>
 
-            <Button variant="outline" className="w-full h-12 text-base font-body" onClick={handleGoogleLogin}>
-              <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-              Sign in with Google
-            </Button>
+            <div className="space-y-3">
+              <Button variant="outline" className="w-full h-12 text-base font-body" onClick={handleGoogleLogin}>
+                <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                Sign in with Google
+              </Button>
+
+              <Button className="w-full h-12 text-base font-body text-white hover:opacity-90" style={{ backgroundColor: "#06C755" }} onClick={handleLineLogin}>
+                <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 5.82 2 10.5c0 4.21 3.74 7.74 8.79 8.4.34.07.81.22.93.51.1.26.07.67.03.93l-.15.9c-.05.27-.21 1.06.93.58s6.17-3.63 8.42-6.22C22.88 13.39 22 11.02 22 10.5 22 5.82 17.52 2 12 2zm-3.16 11.5H6.58a.52.52 0 01-.52-.52V8.52c0-.29.23-.52.52-.52s.52.23.52.52v3.94h1.74c.29 0 .52.23.52.52s-.23.52-.52.52zm1.68-.52a.52.52 0 01-1.04 0V8.52a.52.52 0 011.04 0v4.46zm4.25 0a.52.52 0 01-.34.49.52.52 0 01-.56-.11l-2.44-3.32v2.94a.52.52 0 01-1.04 0V8.52a.52.52 0 01.34-.49.52.52 0 01.56.11l2.44 3.32V8.52a.52.52 0 011.04 0v4.46zm2.63-2.2a.52.52 0 010 1.04h-1.74v1.16h1.74a.52.52 0 010 1.04h-2.26a.52.52 0 01-.52-.52V8.52c0-.29.23-.52.52-.52h2.26a.52.52 0 010 1.04h-1.74v1.22h1.74z" fill="white"/></svg>
+                Sign in with LINE
+              </Button>
+            </div>
 
             <p className="text-center mt-6 text-base text-muted-foreground font-body">
               Don't have an account?{" "}

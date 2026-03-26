@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import Layout from "@/components/Layout";
 import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
@@ -11,6 +12,7 @@ import Signup from "@/pages/Signup";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import GoogleCallback from "@/pages/GoogleCallback";
+import LineCallback from "@/pages/LineCallback";
 import ParentDashboard from "@/pages/ParentDashboard";
 import ChildDashboard from "@/pages/ChildDashboard";
 import ConnectionSetup from "@/pages/ConnectionSetup";
@@ -19,6 +21,7 @@ import SessionMessages from "@/pages/SessionMessages";
 import AudioHistory from "@/pages/AudioHistory";
 import FamilyChat from "@/pages/FamilyChat";
 import Profile from "@/pages/Profile";
+import Notifications from "@/pages/Notifications";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,32 +47,36 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
-            <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-            <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
-            <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
-            <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
-            <Route path="/auth/google/callback" element={<GoogleCallback />} />
+      <NotificationProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
+              <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+              <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+              <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+              <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
+              <Route path="/auth/google/callback" element={<GoogleCallback />} />
+              <Route path="/auth/line/callback" element={<LineCallback />} />
 
-            <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route path="/dashboard" element={<ProtectedRoute allowedType="PARENT"><ParentDashboard /></ProtectedRoute>} />
-              <Route path="/family" element={<ProtectedRoute><ChildDashboard /></ProtectedRoute>} />
-              <Route path="/family/chat/:memberId" element={<ProtectedRoute><FamilyChat /></ProtectedRoute>} />
-              <Route path="/connect" element={<ProtectedRoute><ConnectionSetup /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/parent/:parentId/sessions" element={<ProtectedRoute allowedType="CHILD"><ParentSessions /></ProtectedRoute>} />
-              <Route path="/parent/:parentId/sessions/:sessionId" element={<ProtectedRoute allowedType="CHILD"><SessionMessages /></ProtectedRoute>} />
-            </Route>
+              <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+                <Route path="/dashboard" element={<ProtectedRoute allowedType="PARENT"><ParentDashboard /></ProtectedRoute>} />
+                <Route path="/family" element={<ProtectedRoute><ChildDashboard /></ProtectedRoute>} />
+                <Route path="/family/chat/:memberId" element={<ProtectedRoute><FamilyChat /></ProtectedRoute>} />
+                <Route path="/connect" element={<ProtectedRoute><ConnectionSetup /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+                <Route path="/parent/:parentId/sessions" element={<ProtectedRoute allowedType="CHILD"><ParentSessions /></ProtectedRoute>} />
+                <Route path="/parent/:parentId/sessions/:sessionId" element={<ProtectedRoute allowedType="CHILD"><SessionMessages /></ProtectedRoute>} />
+              </Route>
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </NotificationProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
