@@ -32,6 +32,8 @@ export default function FamilyChat() {
     // Setup interval for polling new messages
     const interval = setInterval(() => {
       // Don't poll if we've had too many errors recently (prevents console spam when offline)
+      // Note: errorCount remains accessible in the closure, but we don't want to re-run
+      // the entire effect setup (which calls loadChatData!) whenever it increments.
       if (errorCount < 3) {
          fetchMessages(false);
       } else {
@@ -39,7 +41,8 @@ export default function FamilyChat() {
       }
     }, 5000); 
     return () => clearInterval(interval);
-  }, [memberId, errorCount]);
+  }, [memberId]); // Only re-run when changing chat members
+
 
   useEffect(() => {
     // Scroll to bottom when new messages arrive
