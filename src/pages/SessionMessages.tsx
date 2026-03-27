@@ -27,22 +27,21 @@ export default function SessionMessages() {
   };
 
   useEffect(() => {
-    if (!parentId || !sessionId) return;
-    monitoring.getMessages(parentId, sessionId)
-      .then(msgs => {
-        setMessages(msgs);
-        // Pre-populate audioUrls with direct links if they are full http URLs
-        const urls: Record<string, string> = {};
-        msgs.forEach(msg => {
-          if (msg.audio_url && msg.audio_url.startsWith('http')) {
-            urls[msg.id] = msg.audio_url;
-          }
-        });
-        setAudioUrls(urls);
+    if (!sessionId) return;
+    audio.getParentSessionMessages(sessionId)
+      .then(session => {
+        setMessages(session.messages || []);
+        setSummary(session.summary);
+
+        // In the Child view, we do NOT pre-populate with external URLs.
+        // We always use the authorized /audio/download/${id} proxy
+        // to ensure the Child has permission to hear the Parent's audio.
+        setAudioUrls({});
       })
       .catch((err) => toast({ title: "Error", description: err.message, variant: "destructive" }))
       .finally(() => setLoading(false));
-  }, [parentId, sessionId]);
+  }, [sessionId]);
+
 
 
   // Auto-preload disabled to avoid CORS issues

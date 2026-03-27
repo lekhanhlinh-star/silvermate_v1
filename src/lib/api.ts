@@ -189,6 +189,8 @@ export interface ChatSession {
   updated_at: string;
   summary: string | null;
   is_active: boolean;
+  title?: string | null;
+  messages?: ChatMessage[];
 }
 
 export interface ChatMessage {
@@ -414,7 +416,7 @@ export const audio = {
    * @param sessionId - The parent session ID
    */
   getParentSessionMessages: (sessionId: string) =>
-    request<ChatMessage[]>(`/audio/parent-sessions/${sessionId}/messages`),
+    request<ChatSession>(`/audio/parent-sessions/${sessionId}/messages`),
 };
 
 // Monitoring
