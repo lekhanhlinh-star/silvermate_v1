@@ -232,14 +232,30 @@ export default function ParentDashboard() {
 
       if (audioUrl && audioPlayerRef.current) {
         setIsSpeaking(true);
-        audioPlayerRef.current.src = audioUrl;
-        audioPlayerRef.current.play();
-        audioPlayerRef.current.onended = () => setIsSpeaking(false);
-        audioPlayerRef.current.onerror = () => {
-          console.error("Audio playback error");
+        try {
+          // IMPORTANT: Fetch as blob with Authorization header to avoid 401
+          const audioBlob = await family.downloadAudio(audioUrl);
+          const blobUrl = URL.createObjectURL(audioBlob);
+          
+          audioPlayerRef.current.src = blobUrl;
+          await audioPlayerRef.current.play();
+          
+          audioPlayerRef.current.onended = () => {
+            setIsSpeaking(false);
+            URL.revokeObjectURL(blobUrl);
+          };
+          
+          audioPlayerRef.current.onerror = () => {
+            console.error("Audio playback error");
+            setIsSpeaking(false);
+            URL.revokeObjectURL(blobUrl);
+            toast({ title: "Failed to play audio response", variant: "destructive" });
+          };
+        } catch (downloadErr) {
+          console.error("Failed to download audio:", downloadErr);
           setIsSpeaking(false);
-          toast({ title: "Failed to play audio response", variant: "destructive" });
-        };
+          toast({ title: "Failed to load audio response", variant: "destructive" });
+        }
       } else {
         setIsSpeaking(false);
       }
@@ -251,6 +267,7 @@ export default function ParentDashboard() {
       setIsSpeaking(false);
     }
   };
+
 
 
   const formatDate = (dateString: string) => {
