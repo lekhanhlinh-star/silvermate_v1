@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { notifications, Notification } from '@/lib/api';
+import { notifications, Notification, WS_URL } from "@/lib/api";
 import { toast } from 'sonner';
 import { Bell } from 'lucide-react';
 
@@ -125,7 +125,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     let reconnectDelay = 3000; // Start at 3s, exponential backoff
     let isMounted = true;
     
-    const wsBaseUrl = import.meta.env.VITE_WS_URL || "ws://localhost:8000";
+    const wsBaseUrl = import.meta.env.VITE_WS_URL || WS_URL;
 
     const connect = () => {
       if (!isMounted) return;

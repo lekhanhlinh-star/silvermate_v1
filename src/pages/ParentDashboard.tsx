@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, MessageCircle, Plus, Sparkles, Menu, X, Mic, Square } from "lucide-react";
-import { chatbot, audio, ChatSession, ChatMessage } from "@/lib/api";
+import { chatbot, audio, ChatSession, ChatMessage, BASE_URL } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -126,7 +126,7 @@ export default function ParentDashboard() {
       const ttsRes = await chatbot.textToSpeech(text);
       const audioUrl = ttsRes.audio_url.startsWith('http') 
         ? ttsRes.audio_url 
-        : `http://localhost:8000${ttsRes.audio_url}`;
+        : `${BASE_URL}${ttsRes.audio_url}`;
 
       setIsSpeaking(true);
       if (audioPlayerRef.current) {
