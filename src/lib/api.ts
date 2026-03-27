@@ -37,12 +37,16 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     throw new Error(`API Error ${res.status}: ${text}`);
   }
 
+  if (res.status === 204) return null as unknown as T;
+
   const contentType = res.headers.get("content-type");
   if (contentType?.includes("application/json")) {
-    return res.json();
+    const text = await res.text();
+    return text ? JSON.parse(text) : (null as unknown as T);
   }
   return res.text() as unknown as T;
 }
+
 
 // Auth
 export interface RegisterData {
