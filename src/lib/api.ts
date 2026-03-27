@@ -19,19 +19,28 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string> || {}),
   };
-  if (token) {
+  
+  if (token && !headers["Authorization"]) {
     headers["Authorization"] = `Bearer ${token}`;
   }
-  if (!headers["Content-Type"] && !(options.body instanceof URLSearchParams)) {
+
+  if (!headers["Content-Type"] && !(options.body instanceof URLSearchParams) && !(options.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
   }
 
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const url = path.startsWith("http") ? path : `${BASE_URL}${path}`;
+
+  const res = await fetch(url, {
     ...options,
     headers,
   });
 
   if (!res.ok) {
+    if (res.status === 401) {
+      clearToken();
+      window.location.href = "/login";
+      return new Promise(() => {}); // Stop further execution
+    }
     const text = await res.text().catch(() => "Unknown error");
     throw new Error(`API Error ${res.status}: ${text}`);
   }
@@ -45,6 +54,40 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
   return res.text() as unknown as T;
 }
+
+/**
+ * Specialized request helper for downloading blobs
+ */
+async function requestBlob(path: string, options: RequestInit = {}): Promise<Blob> {
+  const token = getToken();
+  const headers: Record<string, string> = {
+    ...(options.headers as Record<string, string> || {}),
+  };
+  
+  if (token && !headers["Authorization"]) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const url = path.startsWith("http") ? path : `${BASE_URL}${path}`;
+
+  const res = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  if (!res.ok) {
+    if (res.status === 401) {
+      clearToken();
+      window.location.href = "/login";
+      return new Promise(() => {}); 
+    }
+    const text = await res.text().catch(() => "Unknown error");
+    throw new Error(`API Error ${res.status}: ${text}`);
+  }
+
+  return res.blob();
+}
+
 
 
 // Auth
@@ -209,26 +252,14 @@ export interface ChatMessage {
 
 export const chatbot = {
   sendMessage: async (message: string, sessionId?: string): Promise<ChatMessage> => {
-    const token = getToken();
     const body = new URLSearchParams();
     body.append("message", message);
     if (sessionId) body.append("session_id", sessionId);
 
-    const res = await fetch(`${BASE_URL}/chatbot/`, {
+    return request<ChatMessage>("/chatbot/", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
       body,
     });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => "Unknown error");
-      throw new Error(`API Error ${res.status}: ${text}`);
-    }
-
-    return res.json() as Promise<ChatMessage>;
   },
 
   getSessions: () =>
@@ -244,49 +275,30 @@ export const chatbot = {
     request<ChatMessage[]>(`/chatbot/sessions/${sessionId}/messages`),
 
   transcribeAudio: async (audioBlob: Blob, language: string = "en") => {
-    const token = getToken();
     const formData = new FormData();
     formData.append("file", audioBlob, "audio.webm");
     formData.append("language", language);
 
-    const res = await fetch(`https://audiobook-backend-latest.onrender.com/api/v1/chat/transcribe`, {
-      method: "POST",
-      headers: {
-        'accept': 'application/json',
-
-      },
-      body: formData,
-    });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => "Unknown error");
-      throw new Error(`API Error ${res.status}: ${text}`);
-    }
-
-    return res.json() as Promise<{ text: string; confidence: number; status: string }>;
+    return request<{ text: string; confidence: number; status: string }>(
+      "https://audiobook-backend-latest.onrender.com/api/v1/chat/transcribe",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
   },
 
   textToSpeech: async (text: string) => {
-    const token = getToken();
     const body = new URLSearchParams();
     body.append("text", text);
 
-    const res = await fetch(`https://audiobook-backend-latest.onrender.com/api/v1/chat/tts`, {
-      method: "POST",
-      headers: {
-        "accept": "application/json",
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: body,
-    });
-
-
-    if (!res.ok) {
-      const errText = await res.text().catch(() => "Unknown error");
-      throw new Error(`API Error ${res.status}: ${errText}`);
-    }
-
-    return res.json() as Promise<{ audio_url: string; status: string }>;
+    return request<{ audio_url: string; status: string }>(
+      "https://audiobook-backend-latest.onrender.com/api/v1/chat/tts",
+      {
+        method: "POST",
+        body,
+      }
+    );
   },
 };
 
@@ -309,7 +321,6 @@ export const audio = {
    * @param language - Language code (default: 'en')
    */
   transcribeAndUpload: async (sessionId: string, audioFile: Blob | File, language: string = "en") => {
-    const token = getToken();
     const formData = new FormData();
 
     // Determine the correct mime type
@@ -330,20 +341,10 @@ export const audio = {
     formData.append("file", audioFile, fileName);
     formData.append("language", language);
 
-    const res = await fetch(`${BASE_URL}/audio/transcribe/${sessionId}`, {
+    return request<AudioTranscribeResponse>(`/audio/transcribe/${sessionId}`, {
       method: "POST",
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
       body: formData,
     });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => "Unknown error");
-      throw new Error(`API Error ${res.status}: ${text}`);
-    }
-
-    return res.json() as Promise<AudioTranscribeResponse>;
   },
 
   /**
@@ -357,23 +358,8 @@ export const audio = {
    * @param messageId - The message ID containing the audio
    * @returns Blob of the audio file
    */
-  downloadAudio: async (messageId: string) => {
-    const token = getToken();
-
-    const res = await fetch(`${BASE_URL}/audio/download/${messageId}`, {
-      method: "GET",
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => "Unknown error");
-      throw new Error(`API Error ${res.status}: ${text}`);
-    }
-
-    return res.blob();
-  },
+  downloadAudio: (messageId: string) =>
+    requestBlob(`/audio/download/${messageId}`),
 
   /**
    * Get all messages with audio
@@ -450,26 +436,21 @@ export const family = {
     request<FamilyMessage[]>(`/family/messages?skip=${skip}&limit=${limit}`),
 
   downloadAudio: async (url: string) => {
-    const token = getToken();
     const isExternal = url.startsWith('http') && !url.startsWith(BASE_URL);
     const fullUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`;
 
-    const headers: Record<string, string> = {};
-    if (!isExternal && token) {
-      headers["Authorization"] = `Bearer ${token}`;
+    // For external URLs, we don't send our auth token to prevent CORS/security issues
+    if (isExternal) {
+      const res = await fetch(fullUrl);
+      if (!res.ok) {
+        const text = await res.text().catch(() => "Unknown error");
+        throw new Error(`API Error ${res.status}: ${text}`);
+      }
+      return res.blob();
     }
 
-    const res = await fetch(fullUrl, {
-      method: "GET",
-      headers,
-    });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => "Unknown error");
-      throw new Error(`API Error ${res.status}: ${text}`);
-    }
-
-    return res.blob();
+    // For internal URLs, use our specialized requestBlob helper (handles 401, etc.)
+    return requestBlob(fullUrl);
   }
 };
 
