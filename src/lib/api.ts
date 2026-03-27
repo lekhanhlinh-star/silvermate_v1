@@ -17,7 +17,6 @@ export function clearToken() {
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   const headers: Record<string, string> = {
-    "ngrok-skip-browser-warning": "true",
     ...(options.headers as Record<string, string> || {}),
   };
   if (token) {
@@ -217,7 +216,6 @@ export const chatbot = {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        "ngrok-skip-browser-warning": "true",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body,
@@ -375,7 +373,6 @@ export const audio = {
     const res = await fetch(`${BASE_URL}/audio/download/${messageId}`, {
       method: "GET",
       headers: {
-        "ngrok-skip-browser-warning": "true",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
@@ -463,15 +460,17 @@ export const family = {
     request<FamilyMessage[]>(`/family/messages?skip=${skip}&limit=${limit}`),
 
   downloadAudio: async (url: string) => {
-    const token = getToken();
+    const isExternal = url.startsWith('http') && !url.startsWith(BASE_URL);
     const fullUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`;
+
+    const headers: Record<string, string> = {};
+    if (!isExternal && token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
 
     const res = await fetch(fullUrl, {
       method: "GET",
-      headers: {
-        "ngrok-skip-browser-warning": "true",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
+      headers,
     });
 
     if (!res.ok) {
