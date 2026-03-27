@@ -279,17 +279,18 @@ export const chatbot = {
 
   textToSpeech: async (text: string) => {
     const token = getToken();
-    const formData = new FormData();
-    formData.append("text", text);
+    const body = new URLSearchParams();
+    body.append("text", text);
 
     const res = await fetch(`https://audiobook-backend-latest.onrender.com/api/v1/chat/tts`, {
       method: "POST",
       headers: {
-        "ngrok-skip-browser-warning": "true",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        "accept": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: formData,
+      body: body,
     });
+
 
     if (!res.ok) {
       const errText = await res.text().catch(() => "Unknown error");
