@@ -111,20 +111,26 @@ export default function FamilyChat() {
     try {
       setPlayingAudioId(messageId);
       
-      // Use the token authorized fetch method
-      const blob = await family.downloadAudio(audioUrl);
-      const url = URL.createObjectURL(blob);
+      let url = audioUrl;
+      const isExternal = audioUrl.startsWith('http');
+
+      // If not a full URL, or if it needs authentication (internal), we download as blob
+      // However, for typical S3/external links, we play directly
+      if (!isExternal) {
+        const blob = await family.downloadAudio(audioUrl);
+        url = URL.createObjectURL(blob);
+      }
       
       if (audioRef.current) {
         audioRef.current.src = url;
         audioRef.current.play();
         audioRef.current.onended = () => {
           setPlayingAudioId(null);
-          URL.revokeObjectURL(url);
+          if (!isExternal) URL.revokeObjectURL(url);
         };
         audioRef.current.onerror = () => {
           setPlayingAudioId(null);
-          URL.revokeObjectURL(url);
+          if (!isExternal) URL.revokeObjectURL(url);
           toast({ title: "Audio Playback Error", variant: "destructive" });
         };
       }
@@ -133,6 +139,7 @@ export default function FamilyChat() {
       toast({ title: "Error loading audio", description: err instanceof Error ? err.message : "Unknown error", variant: "destructive" });
     }
   };
+
 
   if (loading) {
     return (

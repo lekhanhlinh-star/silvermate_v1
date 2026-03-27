@@ -29,10 +29,21 @@ export default function SessionMessages() {
   useEffect(() => {
     if (!parentId || !sessionId) return;
     monitoring.getMessages(parentId, sessionId)
-      .then(setMessages)
+      .then(msgs => {
+        setMessages(msgs);
+        // Pre-populate audioUrls with direct links if they are full http URLs
+        const urls: Record<string, string> = {};
+        msgs.forEach(msg => {
+          if (msg.audio_url && msg.audio_url.startsWith('http')) {
+            urls[msg.id] = msg.audio_url;
+          }
+        });
+        setAudioUrls(urls);
+      })
       .catch((err) => toast({ title: "Error", description: err.message, variant: "destructive" }))
       .finally(() => setLoading(false));
   }, [parentId, sessionId]);
+
 
   // Auto-preload disabled to avoid CORS issues
   // Audio will be loaded on-demand when user clicks play

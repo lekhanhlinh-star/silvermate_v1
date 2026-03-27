@@ -342,7 +342,6 @@ export const audio = {
     const res = await fetch(`${BASE_URL}/audio/transcribe/${sessionId}`, {
       method: "POST",
       headers: {
-        "ngrok-skip-browser-warning": "true",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: formData,
@@ -460,6 +459,7 @@ export const family = {
     request<FamilyMessage[]>(`/family/messages?skip=${skip}&limit=${limit}`),
 
   downloadAudio: async (url: string) => {
+    const token = getToken();
     const isExternal = url.startsWith('http') && !url.startsWith(BASE_URL);
     const fullUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`;
 
