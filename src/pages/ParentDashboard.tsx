@@ -120,31 +120,7 @@ export default function ParentDashboard() {
 
   // ...existing code...
 
-  // API TTS function  
-  const speakWithAPITTS = async (text: string) => {
-    try {
-      const ttsRes = await chatbot.textToSpeech(text);
-      const audioUrl = ttsRes.audio_url.startsWith('http') 
-        ? ttsRes.audio_url 
-        : `${BASE_URL}${ttsRes.audio_url}`;
 
-      setIsSpeaking(true);
-      if (audioPlayerRef.current) {
-        audioPlayerRef.current.src = audioUrl;
-        audioPlayerRef.current.play();
-        audioPlayerRef.current.onended = () => setIsSpeaking(false);
-        audioPlayerRef.current.onerror = () => {
-          console.error("Audio playback error");
-          setIsSpeaking(false);
-          toast({ title: "Failed to play audio response", variant: "destructive" });
-        };
-      }
-    } catch (error) {
-      console.error("API TTS error:", error);
-      toast({ title: "TTS failed", variant: "destructive" });
-      setIsSpeaking(false);
-    }
-  };
 
   const toggleRecording = async () => {
     if (isProcessing) return; // Cannot start/stop recording while processing
@@ -238,20 +214,35 @@ export default function ParentDashboard() {
       // Update UI with user message
       setMessages((prev) => [...prev, { role: "user", content: text }]);
 
-      // 2. Get Response (already saved by backend)
-      const responseText = await chatbot.sendMessage(text, sessionToUse.id, (streamedText) => {
-        if (!audioOnlyMode) {
-          setCurrentResponse(streamedText);
-        }
-      });
+      // 2. Get Response (AI generates text + audio together)
+      const chatRes = await chatbot.sendMessage(text, sessionToUse.id);
+      const responseText = chatRes.content;
 
       if (!audioOnlyMode) {
+        setCurrentResponse(responseText);
         setMessages((prev) => [...prev, { role: "assistant", content: responseText }]);
       }
 
-      // 3. TTS - Use only API TTS
+      // 3. Audio Playback - Use integrated audio_url from response
+      const audioUrl = chatRes.audio_url 
+        ? (chatRes.audio_url.startsWith('http') ? chatRes.audio_url : `${BASE_URL}${chatRes.audio_url}`)
+        : null;
+
       setIsProcessing(false);
-      await speakWithAPITTS(responseText);
+
+      if (audioUrl && audioPlayerRef.current) {
+        setIsSpeaking(true);
+        audioPlayerRef.current.src = audioUrl;
+        audioPlayerRef.current.play();
+        audioPlayerRef.current.onended = () => setIsSpeaking(false);
+        audioPlayerRef.current.onerror = () => {
+          console.error("Audio playback error");
+          setIsSpeaking(false);
+          toast({ title: "Failed to play audio response", variant: "destructive" });
+        };
+      } else {
+        setIsSpeaking(false);
+      }
 
     } catch (error) {
       console.error("Voice interaction error:", error);
@@ -260,6 +251,7 @@ export default function ParentDashboard() {
       setIsSpeaking(false);
     }
   };
+
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

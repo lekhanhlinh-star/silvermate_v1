@@ -208,7 +208,7 @@ export interface ChatMessage {
 }
 
 export const chatbot = {
-  sendMessage: async (message: string, sessionId?: string, onChunk?: (text: string) => void) => {
+  sendMessage: async (message: string, sessionId?: string): Promise<ChatMessage> => {
     const token = getToken();
     const body = new URLSearchParams();
     body.append("message", message);
@@ -223,23 +223,12 @@ export const chatbot = {
       body,
     });
 
-    if (!res.ok) throw new Error(`API Error ${res.status}`);
-
-    const reader = res.body?.getReader();
-    if (!reader) throw new Error("No response body");
-
-    const decoder = new TextDecoder();
-    let fullText = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value, { stream: true });
-      fullText += chunk;
-      onChunk?.(fullText);
+    if (!res.ok) {
+      const text = await res.text().catch(() => "Unknown error");
+      throw new Error(`API Error ${res.status}: ${text}`);
     }
 
-    return fullText;
+    return res.json() as Promise<ChatMessage>;
   },
 
   getSessions: () =>
