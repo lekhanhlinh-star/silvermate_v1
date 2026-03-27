@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, MessageCircle, Plus, Sparkles, Menu, X, Mic, Square } from "lucide-react";
-import { chatbot, audio, ChatSession, ChatMessage, BASE_URL } from "@/lib/api";
+import { chatbot, audio, family, ChatSession, ChatMessage, BASE_URL } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
